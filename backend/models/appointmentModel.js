@@ -1,43 +1,62 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const appointmentSchema = new mongoose.Schema(
   {
     doctor: {
       type: mongoose.Types.ObjectId,
-      ref: "Doctor",
-      required: [true, "Appointment must belong to a doctor."],
+      ref: 'Doctor',
+      required: [true, 'Appointment must belong to a doctor.']
     },
-    user: {
+    patient: {
       type: mongoose.Types.ObjectId,
-      ref: "User",
-      required: [true, "Appointment must belong to a user."],
+      ref: 'Patient',
+      required: [true, 'Appointment must belong to a patient.']
     },
     startTime: {
       type: String,
-      validate: [validator.isTime, "Start time is not valid."],
-      required: [true, "Please provide the start time of appointment."],
+      validate: [validator.isTime, 'Start time is not valid.'],
+      required: [true, 'Please provide the start time of appointment.']
     },
     endTime: {
       type: String,
-      validate: [validator.isTime, "End time is not valid."],
-      required: [true, "Please provide the end time of appointment."],
+      validate: [validator.isTime, 'End time is not valid.'],
+      required: [true, 'Please provide the end time of appointment.']
     },
     date: {
       type: Date,
-      required: [true, "Please provide the date of appointment."],
+      required: [true, 'Please provide the date of appointment.']
     },
     status: {
       type: String,
-      enum: ["upcoming", "completed", "cancelled"],
-      default: "upcoming",
+      enum: ['upcoming', 'completed', 'cancelled'],
+      default: 'upcoming'
     },
     isPaid: {
       type: Boolean,
-      default: true,
+      default: true
     },
-    prescription: { type: String },
+    prescription: { type: String }
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Appointment", appointmentSchema);
+appointmentSchema.pre(/^find/, function(next) {
+  this.populate([
+    {
+      path: 'patient',
+      model: 'Patient',
+      select:
+        '_id name email phone photo gender diabetic age weight bloodType history'
+    },
+    {
+      path: 'doctor',
+      model: 'Doctor',
+      select:
+        '_id name email phone photo specialization averageRating ticketPrice location'
+    }
+  ]);
+
+  next();
+});
+
+export default mongoose.model('Appointment', appointmentSchema);
