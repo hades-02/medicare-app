@@ -8,7 +8,7 @@ const getCoordsForAddress = async address => {
     )}&key=${process.env.GOOGLE_API_KEY}`
   );
 
-  const data = response.data;
+  const { data } = response;
 
   if (!data || data.status === 'ZERO_RESULTS') {
     throw new AppError('Please enter a valid address', 422);

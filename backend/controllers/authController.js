@@ -1,161 +1,168 @@
-import User from "../models/UserSchema.js";
-import Doctor from "../models/DoctorSchema.js";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import { getCoordsForAddress } from "../util/location.js";
+const jwt = require('jsonwebtoken');
+const { promisify } = require('util');
 
-const generateToken = (user) => {
+const AppError = require('../util/appError');
+const Doctor = require('../models/doctorModel');
+const Patient = require('../models/patientModel');
+const catchAsync = require('../util/catchAsync');
+
+const getUserModel = role => {
+  if (role === 'patient') {
+    return Patient;
+  }
+  if (role === 'doctor') {
+    return Doctor;
+  }
+  return null;
+};
+
+const signToken = (id, role) => {
   return jwt.sign(
     {
-      id: user._id,
-      role: user.role,
+      id,
+      role
     },
     process.env.JWT_SECRET_KEY,
-    { expiresIn: "15d" }
+    { expiresIn: process.env.JWT_EXPIRES_IN }
   );
 };
 
-export const register = async (req, res) => {
-  const {
-    email,
-    password,
-    name,
-    street,
-    city,
-    state,
-    role,
-    photo,
-    gender,
-    regNum,
-  } = req.body;
+const createSendToken = (user, message, statusCode, res) => {
+  const token = signToken(user._id, user.role);
 
-  const address = street + ", " + city + ", " + state;
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
-  let coordinates;
-  try {
-    coordinates = await getCoordsForAddress(address);
-  } catch (error) {
-    return res.status(422).json({
-      message: error.message || "Please enter a valid address",
-    });
-  }
+  res.cookie('jwt', token, cookieOptions);
 
-  try {
-    let user = null;
+  user.password = undefined;
 
-    if (role === "patient") {
-      user = await User.findOne({ email });
-    } else if (role === "doctor") {
-      user = await Doctor.findOne({ email });
-    }
-
-    // check if user is already registered
-    if (user) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    // check if user with the same registration number already exists
-    if (role === "doctor") {
-      user = await Doctor.findOne({ regNum });
-
-      if (user) {
-        return res.status(400).json({
-          message: "User with this registration number already exists",
-        });
-      }
-    }
-
-    //hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    if (role === "patient") {
-      user = new User({
-        name,
-        email,
-        password: hashedPassword,
-        street,
-        city,
-        state,
-        location: coordinates,
-        photo,
-        gender,
-        role,
-      });
-    }
-
-    if (role === "doctor") {
-      user = new Doctor({
-        name,
-        email,
-        password: hashedPassword,
-        street,
-        city,
-        state,
-        location: coordinates,
-        photo,
-        gender,
-        role,
-        regNum,
-      });
-    }
-
-    await user.save();
-
-    res
-      .status(200)
-      .json({ success: true, message: "User successfully created" });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Internal server error, Try again",
-    });
-  }
+  res.status(statusCode).json({
+    status: 'success',
+    message,
+    token,
+    data: user
+  });
 };
 
-export const login = async (req, res) => {
-  const { email } = req.body;
-
-  try {
-    let user = null;
-
-    const patient = await User.findOne({ email });
-    const doctor = await Doctor.findOne({ email });
-
-    if (patient) {
-      user = patient;
-    }
-    if (doctor) {
-      user = doctor;
-    }
-
-    // check if user exists
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // check if password is correct
-    const isMatch = await bcrypt.compare(req.body.password, user.password);
-
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Invalid credentials" });
-    }
-
-    // generate token
-    const token = generateToken(user);
-
-    const { password, role, appointments, ...rest } = user._doc;
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token,
-      data: { ...rest },
-      role,
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to login" });
+exports.signup = catchAsync(async (req, res, next) => {
+  // 1) Verify role of the new user
+  const Model = getUserModel(req.body.role);
+  if (!Model) {
+    return next(new AppError('Role invalid or not specified.', 400));
   }
+
+  // 2) Create a new user
+  const newUser = await Model.create(req.body);
+
+  // 3) If everything ok, send token to client
+  createSendToken(newUser, 'Signup successful.', 201, res);
+});
+
+exports.login = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  // 1) Check if email and password exist
+  if (!email || !password) {
+    return next(new AppError('Please provide email and password!', 400));
+  }
+
+  // 2) Verify role of the user
+  const Model = getUserModel(req.body.role);
+  if (!Model) {
+    return next(new AppError('Role invalid or not specified.', 400));
+  }
+
+  // 3) Check if user exists && password is correct
+  const user = await Model.findOne({ email }).select('+password');
+
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new AppError('Incorrect email or password', 401));
+  }
+
+  // 4) If everything ok, send token to client
+  createSendToken(user, 'Login successful.', 200, res);
+});
+
+exports.protect = catchAsync(async (req, res, next) => {
+  // 1) Get token and check if it's there
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return next(
+      new AppError('You are not logged in! Please log in to get access.', 401)
+    );
+  }
+
+  // 2) Verify token
+  const decoded = await promisify(jwt.verify)(
+    token,
+    process.env.JWT_SECRET_KEY
+  );
+
+  // 3) Check if user still exists
+  const Model = getUserModel(decoded.role);
+  const currentUser = await Model.findById(decoded.id);
+
+  if (!currentUser) {
+    return next(
+      new AppError(
+        'The user belonging to this token does no longer exist.',
+        401
+      )
+    );
+  }
+
+  // 4) Check if user changed password after the token was issued
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password! Please log in again.', 401)
+    );
+  }
+
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.userId = currentUser.id;
+  req.role = currentUser.role;
+  next();
+});
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403)
+      );
+    }
+    next();
+  };
 };
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1) Get user from collection
+  const Model = getUserModel(req.role);
+  const user = await Model.findById(req.userId).select('+password');
+
+  // 2) Check if Posted current password is correct
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong.', 401));
+  }
+
+  // 3) If so, update password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+
+  // 4) Log user in, send JWT
+  createSendToken(user, 'Password successfully updated.', 200, res);
+});

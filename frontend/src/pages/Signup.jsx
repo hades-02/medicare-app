@@ -16,7 +16,7 @@ const Signup = () => {
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    passwordConfirm: "",
     regNum: "",
     street: "",
     city: "",
@@ -55,11 +55,11 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      if (formData.password !== formData.confirmPassword) {
+      if (formData.password !== formData.passwordConfirm) {
         throw new Error("Passwords do not match");
       }
 
-      const res = await fetch(`${BASE_URL}/auth/register`, {
+      const res = await fetch(`${BASE_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -139,8 +139,8 @@ const Signup = () => {
                 <input
                   type="password"
                   placeholder="Confirm Password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
+                  name="passwordConfirm"
+                  value={formData.passwordConfirm}
                   onChange={handleInputChange}
                   className="w-full pr-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none focus:border-b-primaryColor text-[16px] leading-7 text-headingColor placeholder:text-textColor cursor-pointer"
                   required

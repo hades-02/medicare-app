@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
+const validator = require('validator');
 
 const appointmentSchema = new mongoose.Schema(
   {
@@ -59,4 +60,6 @@ appointmentSchema.pre(/^find/, function(next) {
   next();
 });
 
-export default mongoose.model('Appointment', appointmentSchema);
+const Appointment = mongoose.model('Appointment', appointmentSchema);
+
+module.exports = Appointment;

@@ -84,8 +84,6 @@ const patientSchema = new mongoose.Schema(
       }
     },
     passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
     active: {
       type: Boolean,
       default: true,
@@ -103,18 +101,12 @@ patientSchema.pre(/^find/, function(next) {
   next();
 });
 
-patientSchema.pre('save', userMethod.setCoordinates);
-
 patientSchema.pre('save', userMethod.setPassword);
-
+patientSchema.pre('save', userMethod.setCoordinates);
 patientSchema.pre('save', userMethod.setPasswordChangedAt);
 
 patientSchema.methods.correctPassword = userMethod.isPasswordCorrect;
-
 patientSchema.methods.changedPasswordAfter = userMethod.isPasswordChangedAfter;
-
-patientSchema.methods.createPasswordResetToken =
-  userMethod.createPasswordResetToken;
 
 const Patient = mongoose.model('Patient', patientSchema);
 

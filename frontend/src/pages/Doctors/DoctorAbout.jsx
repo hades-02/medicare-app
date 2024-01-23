@@ -9,13 +9,11 @@ import "./ModalMap.css";
 const DoctorAbout = ({ doctor }) => {
   const [showMap, setShowMap] = useState(false);
 
-  let address = "Jawahar Chowk, Nagod, Madhya Pradesh";
-  let location = { lat: 24.5701787, lng: 80.5799505 };
-
-  if (doctor.location && doctor.address) {
-    location = doctor.location;
-    address = doctor.street + ", " + doctor.city + ", " + doctor.state;
-  }
+  const address = doctor.street + ", " + doctor.city + ", " + doctor.state;
+  const location = {
+    lat: doctor.location.coordinates[0],
+    lng: doctor.location.coordinates[1],
+  };
 
   const openMapHandler = () => setShowMap(true);
 

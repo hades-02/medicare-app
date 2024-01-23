@@ -20,8 +20,6 @@ const Dashboard = () => {
     error,
   } = useGetProfile(`${BASE_URL}/doctors/profile/me`);
 
-  console.log(doctorData, "doctorData");
-
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
   };

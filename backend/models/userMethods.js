@@ -1,7 +1,6 @@
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 
-const { getCoordsForAddress } = require('../util/location');
+const getCoordsForAddress = require('../util/location');
 
 exports.setCoordinates = async function(next) {
   if (
@@ -13,7 +12,7 @@ exports.setCoordinates = async function(next) {
 
   try {
     const coordinates = await getCoordsForAddress(
-      `${this.street}, ${this.city}, ${this.state}`
+      `${this.street},${this.city},${this.state}`
     );
     this.location.coordinates = [coordinates.lat, coordinates.lng];
   } catch (err) {
@@ -30,15 +29,15 @@ exports.setPassword = async function(next) {
   next();
 };
 
+exports.isPasswordCorrect = async function(candidatePassword, userPassword) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
 exports.setPasswordChangedAt = function(next) {
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000;
   next();
-};
-
-exports.isPasswordCorrect = async function(candidatePassword, userPassword) {
-  return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 exports.isPasswordChangedAfter = function(JWTTimestamp) {
@@ -51,19 +50,4 @@ exports.isPasswordChangedAfter = function(JWTTimestamp) {
     return JWTTimestamp < changedTimestamp;
   }
   return false;
-};
-
-exports.createPasswordResetToken = function() {
-  const resetToken = crypto.randomBytes(32).toString('hex');
-
-  this.passwordResetToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
-
-  console.log({ resetToken }, this.passwordResetToken);
-
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-
-  return resetToken;
 };

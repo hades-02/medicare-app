@@ -10,6 +10,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    role: "patient",
   });
 
   const [loading, setLoading] = useState(false);
@@ -42,7 +43,7 @@ const Login = () => {
         payload: {
           user: result.data,
           token: result.token,
-          role: result.role,
+          role: result.data.role,
         },
       });
 
@@ -62,6 +63,7 @@ const Login = () => {
       <div className="w-full max-w-[570px] mx-auto rounded-lg shadow-md md:p-10">
         <h3 className="text-headingColor text-[22px] leading-9 font-bold mb-10">
           Hello! <span className="text-primaryColor">Welcome</span> Back
+          {formData.role === "doctor" && " Doctor"}
         </h3>
 
         <form className="py-4 md:py-0" onSubmit={submitHandler}>
@@ -98,6 +100,23 @@ const Login = () => {
               {loading ? <HashLoader size={25} color="#ffffff" /> : "Login"}
             </button>
           </div>
+
+          {formData.role === "doctor" && (
+            <button
+              className="mt-5 text-primaryColor text-center font-medium ml-1"
+              onClick={() => setFormData({ ...formData, role: "patient" })}
+            >
+              Login as a patient
+            </button>
+          )}
+          {formData.role === "patient" && (
+            <button
+              className="mt-5 text-primaryColor text-center font-medium ml-1"
+              onClick={() => setFormData({ ...formData, role: "doctor" })}
+            >
+              Login as a doctor
+            </button>
+          )}
 
           <p className="mt-5 text-textColor text-center">
             Don&apos;t have an account?

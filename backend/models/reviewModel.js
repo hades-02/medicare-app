@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-import Doctor from './doctorModel.js';
+const Doctor = require('./doctorModel');
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -81,4 +81,6 @@ reviewSchema.post(/^findOneAnd/, async function() {
   await this.r.constructor.calcAverageRatings(this.r.doctor);
 });
 
-export default mongoose.model('Review', reviewSchema);
+const Review = mongoose.model('Review', reviewSchema);
+
+module.exports = Review;

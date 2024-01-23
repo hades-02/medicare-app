@@ -59,13 +59,11 @@ const doctorSchema = new mongoose.Schema(
     about: { type: String },
     bio: {
       type: String,
-      maxLength: [50, 'Bio must not exceed 50 characters.'],
-      required: [true, 'Please provide a bio.']
+      maxLength: [50, 'Bio must not exceed 50 characters.']
     },
     ticketPrice: {
       type: Number,
-      min: [1, 'Ticket price is not valid.'],
-      required: [true, 'Please provide your ticket price.']
+      min: [1, 'Ticket price is not valid.']
     },
     regNum: {
       type: String,
@@ -73,8 +71,7 @@ const doctorSchema = new mongoose.Schema(
       unique: [true, 'Doctor with this registration number already exists.']
     },
     specialization: {
-      type: String,
-      required: [true, 'Please provide your specialization.']
+      type: String
     },
     qualifications: [
       {
@@ -141,8 +138,6 @@ const doctorSchema = new mongoose.Schema(
       }
     },
     passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
     active: {
       type: Boolean,
       default: true,
@@ -160,18 +155,12 @@ doctorSchema.pre(/^find/, function(next) {
   next();
 });
 
-doctorSchema.pre('save', userMethod.setCoordinates);
-
 doctorSchema.pre('save', userMethod.setPassword);
-
+doctorSchema.pre('save', userMethod.setCoordinates);
 doctorSchema.pre('save', userMethod.setPasswordChangedAt);
 
 doctorSchema.methods.correctPassword = userMethod.isPasswordCorrect;
-
 doctorSchema.methods.changedPasswordAfter = userMethod.isPasswordChangedAfter;
-
-doctorSchema.methods.createPasswordResetToken =
-  userMethod.createPasswordResetToken;
 
 const Doctor = mongoose.model('Doctor', doctorSchema);
 
