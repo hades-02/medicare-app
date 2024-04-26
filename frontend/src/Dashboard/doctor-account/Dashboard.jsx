@@ -9,6 +9,7 @@ import UpcomingAppointments from "./UpcomingAppointments";
 import CompletedAppointments from "./CompletedAppointments";
 import Overview from "./Overview";
 import Profile from "./Profile";
+import ChangePassword from "./ChangePassword";
 
 const Dashboard = () => {
   const { dispatch } = useContext(authContext);
@@ -75,6 +76,16 @@ const Dashboard = () => {
                 >
                   Profile Settings
                 </button>
+                <button
+                  onClick={() => setTab("password")}
+                  className={`${
+                    tab === "password"
+                      ? "bg-[#dee4f8] text-primaryColor"
+                      : "bg-white text-textColor"
+                  } w-full mt-4 p-3 text-[16px] font-[600] leading-7 rounded-md`}
+                >
+                  Change Password
+                </button>
               </div>
 
               <div className="mt-[50px] md:mt-[100px]">
@@ -93,8 +104,9 @@ const Dashboard = () => {
             <div className="md:col-span-2 md:px-[30px]">
               {tab === "overview" && <Overview doctor={doctorData} />}
               {tab === "currBookings" && <UpcomingAppointments />}
-              {tab === "settings" && <Profile doctor={doctorData} />}
               {tab === "compBookings" && <CompletedAppointments />}
+              {tab === "settings" && <Profile doctor={doctorData} />}
+              {tab === "password" && <ChangePassword />}
             </div>
           </div>
         )}

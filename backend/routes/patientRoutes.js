@@ -21,9 +21,12 @@ router
 router.use(authController.protect);
 router.use(authController.restrictTo('patient'));
 
-router.patch('/updateMe', patientController.updateMe);
-router.delete('/deleteMe', patientController.deleteMe);
-router.patch('/updateMyPassword', authController.updatePassword);
-router.get('/myProfile', patientController.getMe, patientController.getPatient);
+router
+  .route('/profile/me')
+  .get(patientController.getMe, patientController.getPatient)
+  .patch(patientController.updateMe)
+  .delete(patientController.deleteMe);
+
+router.patch('/profile/updatePassword', authController.updatePassword);
 
 module.exports = router;

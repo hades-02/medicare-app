@@ -1,21 +1,21 @@
-import { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { BASE_URL } from "../config";
 import { toast } from "react-toastify";
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import HashLoader from "react-spinners/HashLoader";
 
-import { authContext } from "../context/AuthContext";
+import { authContext } from "../../context/AuthContext";
+import { BASE_URL } from "../../config";
 
-const Login = () => {
+const ChangePassword = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    passwordCurrent: "",
     password: "",
-    role: "patient",
+    passwordConfirm: "",
   });
 
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { dispatch } = useContext(authContext);
+  const [loading, setLoading] = useState(false);
+  const { dispatch, token } = useContext(authContext);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,9 +26,12 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch(`${BASE_URL}/doctors/profile/updatePassword`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(formData),
       });
 
@@ -59,18 +62,14 @@ const Login = () => {
   return (
     <section className="px-5 lg:px-0">
       <div className="w-full max-w-[570px] mx-auto rounded-lg shadow-md md:p-10">
-        <h3 className="text-headingColor text-[22px] leading-9 font-bold mb-10">
-          Hello! <span className="text-primaryColor">Welcome</span> Back
-          {formData.role === "doctor" && " Doctor"}
-        </h3>
-
         <form className="py-4 md:py-0" onSubmit={submitHandler}>
           <div className="mb-5">
             <input
-              type="email"
-              placeholder="Enter Your Email"
-              name="email"
-              value={formData.email}
+              type="password"
+              placeholder="Current Password"
+              name="passwordCurrent"
+              minLength="8"
+              value={formData.passwordCurrent}
               onChange={handleInputChange}
               className="w-full py-3 border-b border-solid border-[#0066ff61] focus:outline-none focus:border-b-primaryColor text-[16px] leading-7 text-headingColor placeholder:text-textColor cursor-pointer"
               required
@@ -80,9 +79,23 @@ const Login = () => {
           <div className="mb-5">
             <input
               type="password"
-              placeholder="Password"
+              placeholder="New Password"
               name="password"
+              minLength="8"
               value={formData.password}
+              onChange={handleInputChange}
+              className="w-full py-3 border-b border-solid border-[#0066ff61] focus:outline-none focus:border-b-primaryColor text-[16px] leading-7 text-headingColor placeholder:text-textColor cursor-pointer"
+              required
+            />
+          </div>
+
+          <div className="mb-5">
+            <input
+              type="password"
+              placeholder="Confirm New Password"
+              name="passwordConfirm"
+              minLength="8"
+              value={formData.passwordConfirm}
               onChange={handleInputChange}
               className="w-full py-3 border-b border-solid border-[#0066ff61] focus:outline-none focus:border-b-primaryColor text-[16px] leading-7 text-headingColor placeholder:text-textColor cursor-pointer"
               required
@@ -95,39 +108,17 @@ const Login = () => {
               type="submit"
               className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3"
             >
-              {loading ? <HashLoader size={25} color="#ffffff" /> : "Login"}
+              {loading ? (
+                <HashLoader size={25} color="#ffffff" />
+              ) : (
+                "Change Password"
+              )}
             </button>
           </div>
-
-          <div className="mt-2 w-full text-center">
-            {formData.role === "doctor" && (
-              <button
-                className="mt-5 text-primaryColor text-center font-medium ml-1"
-                onClick={() => setFormData({ ...formData, role: "patient" })}
-              >
-                Login as a patient
-              </button>
-            )}
-            {formData.role === "patient" && (
-              <button
-                className="mt-5 text-primaryColor text-center font-medium ml-1"
-                onClick={() => setFormData({ ...formData, role: "doctor" })}
-              >
-                Login as a doctor
-              </button>
-            )}
-          </div>
-
-          <p className="mt-5 text-textColor text-center">
-            Don&apos;t have an account?
-            <Link to="/register" className="text-primaryColor font-medium ml-1">
-              Register
-            </Link>
-          </p>
         </form>
       </div>
     </section>
   );
 };
 
-export default Login;
+export default ChangePassword;

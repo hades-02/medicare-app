@@ -1,8 +1,33 @@
-import { doctors } from "../../assets/data/doctors";
+import { useEffect, useState } from "react";
+
 import DoctorCard from "../../components/Doctors/DoctorCard";
 import Testimonial from "../../components/Testimonial/Testimonial";
+import useGetDoctors from "../../hooks/useFetchData";
+import { BASE_URL } from "../../config";
 
 const Doctors = () => {
+  const { data, loading, error } = useGetDoctors(`${BASE_URL}/doctors`);
+
+  const [doctors, setDoctors] = useState([]);
+
+  useEffect(() => {
+    setDoctors(data);
+  }, [data]);
+
+  const [search, setSearch] = useState("");
+  const [specialization, setSpecialization] = useState("All");
+
+  const specializationList = [
+    "All",
+    "Data",
+    "Finance",
+    "Future Tech",
+    "Management",
+    "Business",
+    "Designing",
+    "Editing",
+  ];
+
   return (
     <>
       <section className="bg-[#fff9ea]">

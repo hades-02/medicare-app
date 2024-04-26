@@ -17,7 +17,7 @@ const MyAccount = () => {
     data: userData,
     loading,
     error,
-  } = useGetProfile(`${BASE_URL}/users/profile/me`);
+  } = useGetProfile(`${BASE_URL}/patients/profile/me`);
 
   console.log(userData, "userData");
 

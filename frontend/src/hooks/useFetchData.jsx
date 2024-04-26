@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
-import { token } from "../config";
+import { useContext, useEffect, useState } from "react";
+import { authContext } from "../context/AuthContext";
 
 const useFetchData = (url) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const { token } = useContext(authContext);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +32,7 @@ const useFetchData = (url) => {
     };
 
     fetchData();
-  }, [url]);
+  }, [url, token]);
 
   return {
     data,

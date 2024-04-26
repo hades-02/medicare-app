@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HashLoader from "react-spinners/HashLoader";
 import { toast } from "react-toastify";
 
 import uploadImageToCloudinary from "../../utils/uploadCloudinary";
-import { BASE_URL, token } from "../../config";
+import { BASE_URL } from "../../config";
+import { authContext } from "../../context/AuthContext";
 
 const Profile = ({ user }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -62,6 +63,8 @@ const Profile = ({ user }) => {
     setFormData({ ...formData, photo: data.url });
   };
 
+  const { token } = useContext(authContext);
+
   const submitHandler = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -71,8 +74,8 @@ const Profile = ({ user }) => {
         throw new Error("Passwords do not match");
       }
 
-      const res = await fetch(`${BASE_URL}/users/${user._id}`, {
-        method: "put",
+      const res = await fetch(`${BASE_URL}/patients/profile/me`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

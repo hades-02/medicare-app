@@ -2,10 +2,10 @@ const APIFeatures = require('../util/apiFeatures');
 const AppError = require('../util/appError');
 const catchAsync = require('../util/catchAsync');
 
-const filterObj = (obj, ...allowedFields) => {
+const filterObj = (obj, ...notAllowedFields) => {
   const newObj = {};
   Object.keys(obj).forEach(el => {
-    if (allowedFields.includes(el)) newObj[el] = obj[el];
+    if (!notAllowedFields.includes(el)) newObj[el] = obj[el];
   });
   return newObj;
 };

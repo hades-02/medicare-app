@@ -113,8 +113,8 @@ const General = ({ doctor, setDoctor }) => {
         <input
           type="text"
           placeholder="Bio"
-          name="bloodType"
-          value={doctor.bloodType}
+          name="bio"
+          value={doctor.bio}
           onChange={handleInputChange}
           className="form__input mt-2"
           required
@@ -177,33 +177,6 @@ const General = ({ doctor, setDoctor }) => {
         className="form__input mt-2"
         required
       ></textarea>
-
-      <div className="mb-5 mt-5">
-        <label htmlFor="password" className="form__label">
-          New Password
-        </label>
-        <input
-          type="password"
-          placeholder="New Password"
-          name="password"
-          value={doctor.password}
-          onChange={handleInputChange}
-          className="form__input mt-2"
-        />
-      </div>
-      <div className="mb-5">
-        <label htmlFor="confirmPassword" className="form__label">
-          Confirm New Password
-        </label>
-        <input
-          type="password"
-          placeholder="Confirm New Password"
-          name="confirmPassword"
-          value={doctor.confirmPassword}
-          onChange={handleInputChange}
-          className="form__input mt-2"
-        />
-      </div>
 
       <div className="mb-5 mt-7 flex items-center gap-3">
         {doctor.photo && (

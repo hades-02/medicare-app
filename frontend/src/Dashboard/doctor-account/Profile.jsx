@@ -1,10 +1,11 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HashLoader from "react-spinners/HashLoader";
 import { toast } from "react-toastify";
 
-import { BASE_URL, token } from "../../config";
+import { BASE_URL } from "../../config";
+import { authContext } from "../../context/AuthContext";
 import General from "./GeneralSettings/General";
 import EduAndExp from "./ManageEdu&Exp/Edu&Exp";
 import Schedule from "./ManageSchedule/Schedule";
@@ -17,8 +18,6 @@ const Profile = ({ doctor }) => {
     name: "",
     email: "",
     phone: "",
-    password: "",
-    confirmPassword: "",
     bio: "",
     gender: "",
     specialization: "",
@@ -62,6 +61,8 @@ const Profile = ({ doctor }) => {
     setExperienceList(doctor.experiences);
   }, [doctor]);
 
+  const { token } = useContext(authContext);
+
   const submitHandler = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -78,8 +79,8 @@ const Profile = ({ doctor }) => {
         experiences: experienceList,
       };
 
-      const res = await fetch(`${BASE_URL}/doctors/${doctor._id}`, {
-        method: "put",
+      const res = await fetch(`${BASE_URL}/doctors/profile/me`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
